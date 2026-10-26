@@ -1,0 +1,39 @@
+[
+	{
+		"name": "schema_version",
+		"columns": [
+			{
+				"name": "sv_mediawiki_version",
+				"type": "string",
+				"options": {
+					"length": 128,
+					"notnull": true
+				}
+			},
+			{
+				"name": "sv_version_timestamp",
+				"type": "mwtimestamp",
+				"options": {
+					"notnull": true
+				}
+			},
+			{
+				"name": "sv_version_hash",
+				"type": "string",
+				"options": {
+					"length": 128,
+					"notnull": true
+				}
+			},
+			{
+				"name": "sv_version_blob",
+				"type": "text",
+				"options": {
+					"notnull": true
+				}
+			}
+		],
+		"indexes": [],
+		"pk": []
+	}
+]
