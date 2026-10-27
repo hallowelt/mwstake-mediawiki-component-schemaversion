@@ -1,9 +1,9 @@
 [
 	{
-		"name": "schema_version",
+		"name": "mws_schema_version",
 		"columns": [
 			{
-				"name": "sv_mediawiki_version",
+				"name": "mwssv_mediawiki_version",
 				"type": "string",
 				"options": {
 					"length": 128,
@@ -11,14 +11,14 @@
 				}
 			},
 			{
-				"name": "sv_version_timestamp",
+				"name": "mwssv_version_timestamp",
 				"type": "mwtimestamp",
 				"options": {
 					"notnull": true
 				}
 			},
 			{
-				"name": "sv_version_hash",
+				"name": "mwssv_version_hash",
 				"type": "string",
 				"options": {
 					"length": 128,
@@ -26,7 +26,15 @@
 				}
 			},
 			{
-				"name": "sv_version_blob",
+				"name": "mwssv_wiki_id",
+				"type": "string",
+				"options": {
+					"length": 128,
+					"notnull": true
+				}
+			},
+			{
+				"name": "mwssv_version_blob",
 				"type": "text",
 				"options": {
 					"notnull": true

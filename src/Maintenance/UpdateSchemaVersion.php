@@ -8,6 +8,9 @@ use Wikimedia\Rdbms\IMaintainableDatabase;
 
 class UpdateSchemaVersion extends LoggedUpdateMaintenance {
 
+	/**
+	 * @inheritDoc
+	 */
 	protected function doDBUpdates() {
 		$db = $this->getDB( DB_PRIMARY );
 		if ( !( $db instanceof IMaintainableDatabase ) ) {
@@ -16,13 +19,16 @@ class UpdateSchemaVersion extends LoggedUpdateMaintenance {
 
 		$manager = new SchemaVersionManager( $this->getServiceContainer()->getHookContainer() );
 		$manager->storeCurrentSchemaVersion( $db );
-		$this->output( "\nStored version of database schema\n" );
+		$this->output( "Stored version of database schema\n" );
 
 		// Never mark as "complete"
 		return false;
 	}
 
+	/**
+	 * @return string
+	 */
 	protected function getUpdateKey() {
-		return 'schema_version_update';
+		return 'mws_schema_version_update';
 	}
 }

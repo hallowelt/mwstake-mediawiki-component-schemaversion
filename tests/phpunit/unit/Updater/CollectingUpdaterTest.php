@@ -21,6 +21,10 @@ class CollectingUpdaterTest extends TestCase {
 		}
 	}
 
+	/**
+	 * @covers \MWStake\MediaWiki\Component\SchemaVersion\Updater\CollectingUpdater::getNormalizedUpdates
+	 * @return void
+	 */
 	public function testGetNormalizedUpdatesNormalizesVirtualDomainsAndTargetFiles(): void {
 		$updater = $this->newUpdaterWithoutConstructor();
 		$directFile = $this->makeTempFile( 'direct-file-content' );
@@ -61,6 +65,10 @@ class CollectingUpdaterTest extends TestCase {
 		$this->assertSame( [ 'schema_table', $virtualDomainFile, true ], $virtualDomain['params'] );
 	}
 
+	/**
+	 * @covers \MWStake\MediaWiki\Component\SchemaVersion\Updater\CollectingUpdater::getNormalizedUpdates
+	 * @return void
+	 */
 	public function testGetNormalizedUpdatesOmitsTargetFileForMissingFullPath(): void {
 		$updater = $this->newUpdaterWithoutConstructor();
 		$missingPath = sys_get_temp_dir() . '/missing-' . uniqid( '', true ) . '.sql';
@@ -76,6 +84,11 @@ class CollectingUpdaterTest extends TestCase {
 		$this->assertNull( $normalized[0]['targetFile'] );
 	}
 
+	/**
+	 * @covers \MWStake\MediaWiki\Component\SchemaVersion\Updater\CollectingUpdater::getNormalizedCoreUpdates
+	 * @covers \MWStake\MediaWiki\Component\SchemaVersion\Updater\CollectingUpdater::getNormalizedAllUpdates
+	 * @return void
+	 */
 	public function testGetNormalizedCoreAndAllUpdatesUseExpectedSource(): void {
 		$updater = $this->newUpdaterWithoutConstructor();
 		$coreFile = $this->makeTempFile( 'core-file-content' );
@@ -141,7 +154,7 @@ class CollectingUpdaterTest extends TestCase {
 	}
 
 	/**
-	 * @param object $object
+	 * @param stdClass $object
 	 * @param string $property
 	 * @param mixed $value
 	 * @return void

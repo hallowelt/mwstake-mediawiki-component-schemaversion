@@ -29,7 +29,7 @@ class CollectingUpdater extends DatabaseUpdater {
 	private array $coreUpdates = [];
 
 	/**
-	 * @param IMaintainableDatabase $db
+	 * @param IMaintainableDatabase &$db
 	 * @param bool $shared
 	 * @param Maintenance|null $maintenance
 	 */

@@ -14,10 +14,9 @@ MWStake\MediaWiki\ComponentLoader\Bootstrapper::getInstance()
 		$hookContainer = \MediaWiki\MediaWikiServices::getInstance()->getHookContainer();
 		$hookContainer->register( 'LoadExtensionSchemaUpdates', static function ( DatabaseUpdater $updater ) {
 			$dbType = $updater->getDB()->getType();
-			$updater->addExtensionTable( 'schema_version', __DIR__ . "/db/$dbType/schema_version.sql" );
+			$updater->addExtensionTable( 'mws_schema_version', __DIR__ . "/db/$dbType/mws_schema_version.sql" );
 
 			$updater->addPostDatabaseUpdateMaintenance( UpdateSchemaVersion::class );
 		} );
 	};
 } );
-

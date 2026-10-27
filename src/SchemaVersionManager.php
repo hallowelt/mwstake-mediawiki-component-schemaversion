@@ -4,7 +4,9 @@ namespace MWStake\MediaWiki\Component\SchemaVersion;
 
 use MediaWiki\HookContainer\HookContainer;
 use MediaWiki\Maintenance\Maintenance;
+use MediaWiki\WikiMap\WikiMap;
 use MWStake\MediaWiki\Component\SchemaVersion\Updater\CollectingUpdater;
+use ReflectionException;
 use Wikimedia\Rdbms\IMaintainableDatabase;
 
 class SchemaVersionManager {
@@ -14,7 +16,8 @@ class SchemaVersionManager {
 	 */
 	public function __construct(
 		private readonly HookContainer $hookContainer
-	) {}
+	) {
+	}
 
 	/**
 	 * @param IMaintainableDatabase $db
@@ -24,21 +27,48 @@ class SchemaVersionManager {
 		$snapshot = $this->getSchemaSnapshot( $db );
 		$timestamp = $db->timestamp();
 		$db->newInsertQueryBuilder()
-			->table( 'schema_version' )
+			->table( 'mws_schema_version' )
 			->row( [
-				'sv_mediawiki_version'	=> MW_VERSION,
-				'sv_version_hash'		=> $snapshot['schemaVersionHash'],
-				'sv_version_timestamp'  => $timestamp,
-				'sv_version_blob'		=> json_encode( $snapshot, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE )
+				'mwssv_mediawiki_version'	=> MW_VERSION,
+				'mwssv_version_hash'		=> $snapshot['schemaVersionHash'],
+				'mwssv_version_timestamp'   => $timestamp,
+				'mwssv_version_blob'		=> json_encode(
+												$snapshot,
+												JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
+											),
+				'mwssv_wiki_id'				=> WikiMap::getCurrentWikiId()
 			] )
 			->caller( __METHOD__ )
 			->execute();
 
 		$db->newDeleteQueryBuilder()
-			->table( 'schema_version' )
-			->where( $db->expr( 'sv_version_timestamp', '!=', $timestamp ) )
+			->table( 'mws_schema_version' )
+			->where( [
+				$db->expr( 'mwssv_version_timestamp', '!=', $timestamp ),
+				'mwssv_wiki_id' => WikiMap::getCurrentWikiId()
+			] )
 			->caller( __METHOD__ )
 			->execute();
+	}
+
+	/**
+	 * @param IMaintainableDatabase $db
+	 * @param string $targetHash
+	 * @return array wiki_id => schema_hash array
+	 */
+	public function getPendingWikiIds( IMaintainableDatabase $db, string $targetHash ): array {
+		$res = $db->newSelectQueryBuilder()
+			->from( 'mws_schema_version' )
+			->select( [ 'mwssv_version_hash', 'mwssv_wiki_id' ] )
+			->where( [ $db->expr( 'mwssv_version_hash', '!=', $targetHash ) ] )
+			->caller( __METHOD__ )
+			->fetchResultSet();
+
+		$hashes = [];
+		foreach ( $res as $row ) {
+			$hashes[$row->mwssv_wiki_id] = $row->mwssv_version_hash;
+		}
+		return $hashes;
 	}
 
 	/**
@@ -46,40 +76,46 @@ class SchemaVersionManager {
 	 * @return array|null
 	 */
 	public function getCurrentVersion( IMaintainableDatabase $db ): ?array {
-		if ( !$db->tableExists( 'schema_version', __METHOD__ ) ) {
+		if ( !$db->tableExists( 'mws_schema_version', __METHOD__ ) ) {
 			return null;
 		}
 
 		$row = $db->newSelectQueryBuilder()
-			->from( 'schema_version' )
-			->select( [ 'sv_mediawiki_version', 'sv_version_hash', 'sv_version_timestamp', 'sv_version_blob' ] )
+			->from( 'mws_schema_version' )
+			->select( [
+				'mwssv_mediawiki_version', 'mwssv_version_hash', 'mwssv_version_timestamp',
+				'mwssv_version_blob', 'mwssv_wiki_id'
+			] )
+			->where( [ 'mwssv_wiki_id' => WikiMap::getCurrentWikiId() ] )
 			->limit( 1 )
 			->caller( __METHOD__ )
+			// Should never have more than one row, but just in case...
+			->orderBy( [ 'mwssv_version_timestamp' ], 'DESC' )
 			->fetchRow();
 
 		if ( !$row ) {
 			return null;
 		}
 
-		$getField = static function ( $r, string $field ) {
-			if ( is_array( $r ) ) {
-				return $r[$field] ?? null;
-			}
-			if ( is_object( $r ) ) {
-				return $r->$field ?? null;
-			}
-			return null;
-		};
-
 		return [
-			'mw' => $getField( $row, 'sv_mediawiki_version' ),
-			'timestamp' => $getField( $row, 'sv_version_timestamp' ),
-			'hash' => $getField( $row, 'sv_version_hash' ),
-			'blob' => json_decode( (string)$getField( $row, 'sv_version_blob' ), true ),
+			'mw' => $row->mwssv_mediawiki_version,
+			'timestamp' => $row->mwssv_version_timestamp,
+			'hash' => $row->mwssv_version_hash,
+			'blob' => json_decode( (string)$row->mwssv_version_blob, true ),
+			'wiki_id' => $row->mwssv_wiki_id,
 		];
 	}
 
-	public function getSchemaSnapshot( IMaintainableDatabase $db, bool $shared = false, ?Maintenance $maintenance = null ): array {
+	/**
+	 * @param IMaintainableDatabase $db
+	 * @param bool $shared
+	 * @param Maintenance|null $maintenance
+	 * @return array
+	 * @throws ReflectionException
+	 */
+	public function getSchemaSnapshot(
+		IMaintainableDatabase $db, bool $shared = false, ?Maintenance $maintenance = null
+	): array {
 		$updater = new CollectingUpdater( $db, $shared, $maintenance );
 		$updater->collectFromHookContainer( $this->hookContainer );
 		$updater->collectCoreUpdates();
