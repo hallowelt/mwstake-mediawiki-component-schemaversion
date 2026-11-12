@@ -164,7 +164,6 @@ class CollectingUpdaterTest extends TestCase {
 		while ( $reflectionClass !== false ) {
 			if ( $reflectionClass->hasProperty( $property ) ) {
 				$reflectionProperty = $reflectionClass->getProperty( $property );
-				$reflectionProperty->setAccessible( true );
 				$reflectionProperty->setValue( $object, $value );
 				return;
 			}
