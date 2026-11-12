@@ -35,7 +35,8 @@
 	},
 	"autoload": {
 		"psr-4": {
-			"MWStake\\MediaWiki\\Component\\SchemaVersion\\": "src/"
+			"MWStake\\MediaWiki\\Component\\SchemaVersion\\": "src/",
+			"MWStake\\MediaWiki\\Component\\SchemaVersion\\Tests\\Unit\\": "tests/phpunit/unit/"
 		},
 		"files": [
 			"bootstrap.php"

@@ -1,6 +1,6 @@
 <?php
 
-namespace MWStake\MediaWiki\Component\SchemaVersion\Tests\Updater;
+namespace MWStake\MediaWiki\Component\SchemaVersion\Tests\Unit\Updater;
 
 use MWStake\MediaWiki\Component\SchemaVersion\Updater\CollectingUpdater;
 use PHPUnit\Framework\TestCase;
